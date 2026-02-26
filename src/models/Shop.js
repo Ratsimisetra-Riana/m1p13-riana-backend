@@ -25,8 +25,9 @@ const ShopSchema = new mongoose.Schema(
       required: true
     },
 
-    box: {
-      type: BoxSchema,
+   box: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Box",
       default: null
     },
 
