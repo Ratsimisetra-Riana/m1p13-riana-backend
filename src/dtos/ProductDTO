@@ -1,0 +1,13 @@
+class ProductDTO {
+    constructor(name, basePrice, shopId, categoryId, images = [], variants = []) {
+        this.name = name;
+        this.basePrice = basePrice;
+        this.shopId = shopId;
+        this.categoryId = categoryId;
+        this.images = images;
+        this.variants = variants;
+    }
+  }
+ 
+
+module.exports = ProductDTO;

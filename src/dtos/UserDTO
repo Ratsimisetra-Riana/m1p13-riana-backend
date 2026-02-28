@@ -1,0 +1,12 @@
+class UserDTO {
+  constructor(name, email, password, role = 'client', shopId = null, isActive = true) {
+    this.name = name;
+    this.email = email;
+    this.password = password;
+    this.role = role;
+    this.shopId = shopId;
+    this.isActive = isActive;
+  }
+}
+
+module.exports = UserDTO;

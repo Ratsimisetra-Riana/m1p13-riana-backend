@@ -16,8 +16,20 @@ router.post('/', async (req, res) => {
 // Lire tous les shops
 router.get('/', async (req, res) => {
     try {
-        const shops = await Shop.find();
+        const shops = await Shop.find().populate('box', 'code _id');
         res.json(shops);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+router.get('/:id', async (req, res) => {
+    try {
+        const shop = await Shop.findById(req.params.id).populate('box', 'code _id');
+        if (!shop) {
+            return res.status(404).json({ message: "Shop non trouvé" });
+        }
+        res.json(shop);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
