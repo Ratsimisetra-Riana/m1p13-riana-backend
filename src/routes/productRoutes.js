@@ -95,6 +95,68 @@ router.get('/', async (req, res) => {
     }
 });
 
+// Filter products by category and variant attributes
+router.get('/filter', async (req, res) => {
+    try {
+        const { categoryId, shopId, ...attributes } = req.query;
+        
+        // Build the base query
+        const query = {};
+        
+        // Filter by shopId if provided
+        if (shopId) {
+            query.shopId = shopId;
+        }
+        
+        // Filter by categoryId and its children if provided
+        if (categoryId) {
+            const Category = require('../models/Category');
+            
+            // Get all category IDs (selected category + all descendants)
+            const getCategoryIds = async (catId) => {
+                const allCategories = await Category.find();
+                const ids = new Set([catId]);
+                
+                const findChildren = (parentId) => {
+                    allCategories.forEach(cat => {
+                        if (cat.parent && cat.parent.toString() === parentId && !ids.has(cat._id.toString())) {
+                            ids.add(cat._id.toString());
+                            findChildren(cat._id.toString());
+                        }
+                    });
+                };
+                
+                findChildren(catId);
+                return Array.from(ids);
+            };
+            
+            const categoryIds = await getCategoryIds(categoryId);
+            query.categoryId = { $in: categoryIds };
+        }
+        
+        // Get products matching the query
+        const products = await Product.find(query)
+            .populate('categoryId')
+            .populate('shopId');
+        
+        // Further filter variants within each product if attributes specified
+        let filteredProducts = products;
+        if (Object.keys(attributes).length > 0) {
+            filteredProducts = products.map(product => {
+                const filteredVariants = product.variants.filter(variant => {
+                    const variantAttrs = variant.attributes ? Object.fromEntries(variant.attributes) : {};
+                    return Object.entries(attributes).every(([key, value]) => variantAttrs[key] === value);
+                });
+                return { ...product.toObject(), variants: filteredVariants };
+            }).filter(p => p.variants.length > 0);
+        }
+        
+        res.json(filteredProducts);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 router.get('/:id', async (req, res) => {
     try {
         const products = await Product.findById(req.params.id)

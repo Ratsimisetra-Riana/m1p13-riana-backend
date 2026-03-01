@@ -13,11 +13,41 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Lire tous les categorys
+// Lire tous les categorys (flat list - no hierarchy)
 router.get('/', async (req, res) => {
     try {
-        const categorys = await Category.find().populate('parent', 'name _id');
-        res.json(categorys);
+        const categories = await Category.find().populate('parent', 'name _id');
+        res.json(categories);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Lire tous les categorys (hierarchical structure)
+router.get('/hierarchy', async (req, res) => {
+    try {
+        // Get all categories
+        const categories = await Category.find().populate('parent', 'name _id');
+        
+        // Separate root categories (parent is null) and child categories
+        const rootCategories = categories.filter(c => !c.parent);
+        const childCategories = categories.filter(c => c.parent);
+        
+        // Build hierarchical structure
+        const buildHierarchy = (parentCategories, allChildren) => {
+            return parentCategories.map(parent => {
+                const children = allChildren.filter(
+                    child => child.parent && child.parent._id.toString() === parent._id.toString()
+                );
+                return {
+                    ...parent.toObject(),
+                    children: children.length > 0 ? buildHierarchy(children, allChildren) : []
+                };
+            });
+        };
+        
+        const hierarchicalCategories = buildHierarchy(rootCategories, childCategories);
+        res.json(hierarchicalCategories);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
