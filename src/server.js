@@ -4,6 +4,11 @@ const cors = require('cors');
 require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT;
+const dns = require('dns');
+
+// FORCE DNS RESOLUTION - CRITICAL FOR NODE v25 ON WINDOWS
+dns.setServers(['8.8.8.8', '1.1.1.1']);
+console.log('✅ DNS servers set to: 8.8.8.8, 1.1.1.1');
 
 // Middleware
 app.use(cors({
@@ -13,10 +18,20 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Connexion à MongoDB
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connecté"))
-  .catch(err => console.log(err));
+// Connect to MongoDB
+const connectDB = async () => {
+    try {
+        await mongoose.connect(process.env.MONGO_URI);
+        console.log("✅ MongoDB connecté avec succès");
+        console.log("📊 Base de données:", mongoose.connection.name);
+    } catch (error) {
+        console.error("❌ Erreur de connexion MongoDB:", error.message);
+        process.exit(1);
+    }
+};
+
+// Appeler la fonction
+connectDB();
 
 // Routes
 app.use('/articles', require('./routes/articleRoutes'));
