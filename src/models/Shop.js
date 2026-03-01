@@ -40,6 +40,12 @@ const ShopSchema = new mongoose.Schema(
       type: ContactSchema,
       default: null
     }
+    , images: {
+      type: [String],
+      default: []
+    }, 
+    description: String
+
   },
   {
     timestamps: true
