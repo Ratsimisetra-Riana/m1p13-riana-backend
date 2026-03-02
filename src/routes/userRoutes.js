@@ -3,7 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const UserDTO = require('../dtos/userDTO');
+const UserDTO = require('../dtos/UserDTO');
 
 // Login route - Authenticate user and return JWT token
 router.post('/login', async (req, res) => {
